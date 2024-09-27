@@ -66,16 +66,12 @@ function handleClick(e) {
     }
 }
 
-// AI's turn
+// AI's turn using Minimax algorithm
 function aiTurn() {
-    const availableCells = [...cellElements].filter(cell => {
-        return !cell.classList.contains(X_CLASS) && !cell.classList.contains(O_CLASS);
-    });
-
-    if (availableCells.length > 0) {
-        const randomCell = availableCells[Math.floor(Math.random() * availableCells.length)];
+    const bestMove = getBestMove();
+    if (bestMove !== null) {
         const currentClass = O_CLASS; // AI is O
-        placeMark(randomCell, currentClass);
+        placeMark(cellElements[bestMove], currentClass);
 
         if (checkWin(currentClass)) {
             endGame(false, currentClass);
@@ -85,6 +81,58 @@ function aiTurn() {
             swapTurns();
             setStatusMessage();
         }
+    }
+}
+
+// Get the best move for the AI
+function getBestMove() {
+    let bestScore = -Infinity;
+    let move;
+
+    for (let i = 0; i < cellElements.length; i++) {
+        if (!cellElements[i].classList.contains(X_CLASS) && !cellElements[i].classList.contains(O_CLASS)) {
+            cellElements[i].classList.add(O_CLASS);
+            let score = minimax(false);
+            cellElements[i].classList.remove(O_CLASS);
+            if (score > bestScore) {
+                bestScore = score;
+                move = i;
+            }
+        }
+    }
+    return move;
+}
+
+// Minimax algorithm
+function minimax(isMaximizing) {
+    const currentClass = isMaximizing ? O_CLASS : X_CLASS;
+
+    if (checkWin(O_CLASS)) return 1;
+    if (checkWin(X_CLASS)) return -1;
+    if (isDraw()) return 0;
+
+    if (isMaximizing) {
+        let bestScore = -Infinity;
+        for (let i = 0; i < cellElements.length; i++) {
+            if (!cellElements[i].classList.contains(X_CLASS) && !cellElements[i].classList.contains(O_CLASS)) {
+                cellElements[i].classList.add(O_CLASS);
+                let score = minimax(false);
+                cellElements[i].classList.remove(O_CLASS);
+                bestScore = Math.max(score, bestScore);
+            }
+        }
+        return bestScore;
+    } else {
+        let bestScore = Infinity;
+        for (let i = 0; i < cellElements.length; i++) {
+            if (!cellElements[i].classList.contains(X_CLASS) && !cellElements[i].classList.contains(O_CLASS)) {
+                cellElements[i].classList.add(X_CLASS);
+                let score = minimax(true);
+                cellElements[i].classList.remove(X_CLASS);
+                bestScore = Math.min(score, bestScore);
+            }
+        }
+        return bestScore;
     }
 }
 
