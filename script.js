@@ -15,21 +15,34 @@ const cellElements = document.querySelectorAll('[data-cell]');
 const board = document.getElementById('board');
 const statusText = document.getElementById('status');
 const restartButton = document.getElementById('restartButton');
+const twoPlayerButton = document.getElementById('twoPlayerButton');
+const aiButton = document.getElementById('aiButton');
 let oTurn;
+let isAI = false;
 
-startGame();
+twoPlayerButton.addEventListener('click', () => {
+    isAI = false;
+    startGame();
+});
+
+aiButton.addEventListener('click', () => {
+    isAI = true;
+    startGame();
+});
 
 restartButton.addEventListener('click', resetGame);
 
 // Initialize the game
 function startGame() {
     oTurn = false;
+    board.classList.remove('hidden');
+    restartButton.classList.remove('hidden');
+    statusText.innerText = "Player X's turn";
     cellElements.forEach(cell => {
         cell.classList.remove(X_CLASS, O_CLASS);
         cell.innerText = '';
         cell.addEventListener('click', handleClick, { once: true });
     });
-    statusText.innerText = "Player X's turn";
     removeWinningLine();
 }
 
@@ -46,6 +59,32 @@ function handleClick(e) {
     } else {
         swapTurns();
         setStatusMessage();
+
+        if (isAI && oTurn) {
+            aiTurn();
+        }
+    }
+}
+
+// AI's turn
+function aiTurn() {
+    const availableCells = [...cellElements].filter(cell => {
+        return !cell.classList.contains(X_CLASS) && !cell.classList.contains(O_CLASS);
+    });
+
+    if (availableCells.length > 0) {
+        const randomCell = availableCells[Math.floor(Math.random() * availableCells.length)];
+        const currentClass = O_CLASS; // AI is O
+        placeMark(randomCell, currentClass);
+
+        if (checkWin(currentClass)) {
+            endGame(false, currentClass);
+        } else if (isDraw()) {
+            endGame(true);
+        } else {
+            swapTurns();
+            setStatusMessage();
+        }
     }
 }
 
